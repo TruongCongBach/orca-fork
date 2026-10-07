@@ -2,14 +2,26 @@
 
 This is a fork of [Orca](https://github.com/stablyai/orca), maintained by [TruongCongBach](https://github.com/TruongCongBach).
 
+<p align="center">
+  <img src="docs/assets/fork-screenshots/git-log-overview.png" alt="Git Log tab showing the ref tree of local branches, remote branches and tags, a multi-branch commit graph with merges, and the changed files and details of a selected merge commit" width="960" />
+</p>
+
 ### Added features
 
 - **Git Log tab** — open a "Git Log" editor tab (from the tab bar's new-tab menu, the Cmd+J / Ctrl+J quick actions, or the Source Control overflow menu) to browse the commit graph of every branch in the active worktree, with resizable Graph / Subject / Author / Date / Hash columns and multiple Log tabs.
 - **Commit filters** — narrow the log by branch or tag, text or hash (with regex and match-case options), author, date range, and repository paths.
+
+  <img src="docs/assets/fork-screenshots/git-log-filters.png" alt="Git Log filtered to one author, showing only that author's commits and the selected commit's changed files" width="1065" />
 - **Ref tree and commit details** — browse local branches, remote branches, and tags in a side tree, and select a commit to see its changed files and which branches contain it.
 - **Branch path hover highlight** — hovering a line in the graph highlights that whole branch path, WebStorm-style.
-- **Collapse / expand graph branches** — click a branch line to collapse it into a "N commits hidden" marker and click again to expand it, or use "Collapse all linear branches" / "Expand all".
+
+  <img src="docs/assets/fork-screenshots/git-log-hover-highlight.png" alt="Commit graph with the hovered feature/auth branch path drawn thicker and its commits shown as hollow rings" width="700" />
+- **Collapse / expand graph branches** — click a branch line to fold its commits into a dashed segment with a chevron (hover shows "N commits hidden — click to expand"), click again to expand, or use "Collapse all linear branches" / "Expand all".
+
+  <img src="docs/assets/fork-screenshots/git-log-collapsed.png" alt="Commit graph with the feature/auth branch collapsed: three commits hidden behind a dashed line with a chevron" width="700" />
 - **Checkout from the Git Log** — check out a branch straight from the ref tree; checking out a remote-only branch creates a local branch that tracks it, and branches already checked out in another worktree are shown as unavailable. A dedicated `git:checkout` handler performs the checkout and shows a readable error when it fails.
+
+  <img src="docs/assets/fork-screenshots/git-log-checkout.png" alt="Ref tree with local branches, remote branches and tags, and the right-click menu on a local branch offering Checkout" width="420" />
 
 ### Branches
 
