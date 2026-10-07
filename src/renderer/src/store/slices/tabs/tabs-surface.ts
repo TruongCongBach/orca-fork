@@ -73,7 +73,8 @@ export function deriveActiveSurfaceForWorktree(
       activeUnifiedTab.contentType === 'editor' ||
       activeUnifiedTab.contentType === 'diff' ||
       activeUnifiedTab.contentType === 'conflict-review' ||
-      activeUnifiedTab.contentType === 'check-details'
+      activeUnifiedTab.contentType === 'check-details' ||
+      activeUnifiedTab.contentType === 'git-log'
         ? activeUnifiedTab.entityId
         : fileStillOpen
           ? restoredFileId

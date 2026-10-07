@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import type { TuiAgent } from '../../../../shared/tui-agent'
 import { translate } from '@/i18n/i18n'
@@ -11,12 +11,10 @@ import { newAgentLaunchRequestId } from '@/lib/agent-launch-request-id'
 import type { WindowsTerminalCapabilities } from '@/lib/windows-terminal-capabilities'
 import { useAppStore } from '../../store'
 import type { TabAgentLaunchOption } from './tab-agent-launch-options'
-import { buildTabCreateMenuOptions, type TabCreateMenuOption } from './tab-create-menu-options'
+import type { TabCreateMenuOption } from './tab-create-menu-options'
+import { openGitLogTab, useTabCreateMenuOptions } from './use-tab-create-menu-options'
 import { resolveWindowsShellLaunchTarget } from './windows-shell-launch'
-import {
-  buildWindowsShellMenuEntries,
-  type WindowsShellMenuEntry
-} from './tab-bar-windows-shell-options'
+import type { WindowsShellMenuEntry } from './tab-bar-windows-shell-options'
 import type {
   getProjectRuntimeShellMenuMode,
   resolveWindowsPowerShellImplementationSetting
@@ -143,50 +141,22 @@ export function useTabBarCreateMenuController({
   const queueFocusAfterNewTabMenuClose = (focus: () => void): void => {
     pendingNewTabMenuFocusRef.current = focus
   }
-  const windowsShellEntries = useMemo(() => {
-    return buildWindowsShellMenuEntries({
-      showWindowsShellMenu,
-      hasShellLauncher: Boolean(onNewTerminalWithShell),
-      projectRuntimeShellMenuMode,
-      defaultWindowsShell,
-      gitBashAvailable: windowsTerminalCapabilities.gitBashAvailable,
-      wslAvailable: windowsTerminalCapabilities.wslAvailable
-    })
-  }, [
-    defaultWindowsShell,
-    onNewTerminalWithShell,
-    projectRuntimeShellMenuMode,
+  const { windowsShellEntries, createMenuOptions } = useTabCreateMenuOptions({
+    worktreeId,
+    terminalOnly,
+    mobileEmulatorEnabled,
+    managedBrowserCreationEnabled,
+    mobileEmulatorCreationEnabled,
+    workspaceHasSimulatorTab,
     showWindowsShellMenu,
-    windowsTerminalCapabilities.gitBashAvailable,
-    windowsTerminalCapabilities.wslAvailable
-  ])
-  const createMenuOptions = useMemo(
-    () =>
-      buildTabCreateMenuOptions({
-        terminalOnly,
-        windowsShellEntries,
-        hasNewBrowser: !terminalOnly && managedBrowserCreationEnabled,
-        hasNewMarkdown: !terminalOnly && Boolean(onNewFileTab),
-        hasOpenMarkdown: !terminalOnly && Boolean(onOpenFileTab),
-        hasSimulator:
-          !terminalOnly &&
-          mobileEmulatorEnabled &&
-          mobileEmulatorCreationEnabled &&
-          Boolean(onNewSimulatorTab),
-        simulatorIsGoTo: workspaceHasSimulatorTab
-      }),
-    [
-      mobileEmulatorEnabled,
-      managedBrowserCreationEnabled,
-      mobileEmulatorCreationEnabled,
-      onNewFileTab,
-      onNewSimulatorTab,
-      onOpenFileTab,
-      terminalOnly,
-      windowsShellEntries,
-      workspaceHasSimulatorTab
-    ]
-  )
+    projectRuntimeShellMenuMode,
+    defaultWindowsShell,
+    windowsTerminalCapabilities,
+    hasShellLauncher: Boolean(onNewTerminalWithShell),
+    hasNewFileTab: Boolean(onNewFileTab),
+    hasOpenFileTab: Boolean(onOpenFileTab),
+    hasNewSimulatorTab: Boolean(onNewSimulatorTab)
+  })
   const handleSelectCreateMenuOption = (option: TabCreateMenuOption): void => {
     switch (option.kind) {
       case 'new-terminal':
@@ -218,6 +188,9 @@ export function useTabBarCreateMenuController({
       case 'new-simulator':
       case 'go-to-simulator':
         onNewSimulatorTab?.()
+        break
+      case 'open-git-log':
+        openGitLogTab(worktreeId)
         break
     }
   }

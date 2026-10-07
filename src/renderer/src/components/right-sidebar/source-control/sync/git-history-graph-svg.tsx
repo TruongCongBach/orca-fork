@@ -56,14 +56,20 @@ export function GitHistoryGraphSvg({
 
   const paths: React.JSX.Element[] = []
   let outputSwimlaneIndex = 0
+  // Why: a commit id can occupy several input lanes, so keys add a per-id occurrence count.
+  const laneIdOccurrences = new Map<string, number>()
 
   for (let index = 0; index < inputSwimlanes.length; index += 1) {
     const color = inputSwimlanes[index]!.color
+    const laneId = inputSwimlanes[index]!.id
+    const laneOccurrence = laneIdOccurrences.get(laneId) ?? 0
+    laneIdOccurrences.set(laneId, laneOccurrence + 1)
+    const laneKey = `${laneId}-${laneOccurrence}`
     if (inputSwimlanes[index]!.id === historyItem.id) {
       if (index !== circleIndex) {
         paths.push(
           <GraphPath
-            key={`base-${inputSwimlanes[index]!.id}`}
+            key={`base-${laneKey}`}
             color={color}
             d={[
               `M ${SWIMLANE_WIDTH * (index + 1)} 0`,
@@ -85,7 +91,7 @@ export function GitHistoryGraphSvg({
       if (index === outputSwimlaneIndex) {
         paths.push(
           <GraphPath
-            key={`vertical-${inputSwimlanes[index]!.id}`}
+            key={`vertical-${laneKey}`}
             color={color}
             d={`M ${SWIMLANE_WIDTH * (index + 1)} 0 V ${SWIMLANE_HEIGHT}`}
           />
@@ -93,7 +99,7 @@ export function GitHistoryGraphSvg({
       } else {
         paths.push(
           <GraphPath
-            key={`shift-${inputSwimlanes[index]!.id}-${outputSwimlanes[outputSwimlaneIndex]!.id}`}
+            key={`shift-${laneKey}-${outputSwimlanes[outputSwimlaneIndex]!.id}`}
             color={color}
             d={[
               `M ${SWIMLANE_WIDTH * (index + 1)} 0`,

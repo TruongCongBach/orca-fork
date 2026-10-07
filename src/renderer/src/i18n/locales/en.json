@@ -19159,5 +19159,101 @@
   "projectField": {
     "updateFailed": "Failed to update project field"
   },
-  "settings.appearance.chat.title": "Chat"
+  "settings.appearance.chat.title": "Chat",
+  "gitLog": {
+    "open": "Open Git Log",
+    "openDescription": "Browse the commit graph of every branch in the active worktree.",
+    "verbs": {
+      "gitLog": "git log",
+      "history": "git history",
+      "commits": "commits"
+    },
+    "tabs": {
+      "close": "Close {{value0}}",
+      "new": "New Log tab"
+    },
+    "list": {
+      "empty": "No commits match the current filters",
+      "loading": "Loading commits…",
+      "loadingMore": "Loading more commits…"
+    },
+    "details": {
+      "fileCount": "{{value0}} files",
+      "loadingFiles": "Loading files…",
+      "empty": "Select a commit to see its changes",
+      "branchesLoading": "Finding branches…",
+      "branchesError": "Could not list branches",
+      "inBranches": "In {{value0}} branches:",
+      "showAll": "Show all"
+    },
+    "filters": {
+      "branch": {
+        "local": "local",
+        "remote": "remote",
+        "tag": "tag",
+        "search": "Search branches and tags"
+      },
+      "text": "Text or hash",
+      "clearText": "Clear text filter",
+      "regex": "Regex",
+      "matchCase": "Match case",
+      "branchLabel": "Branch",
+      "userLabel": "User",
+      "user": {
+        "search": "Author name or email"
+      },
+      "dateLabel": "Date",
+      "pathsLabel": "Paths",
+      "clearOne": "Clear {{value0}} filter",
+      "useCustom": "Use “{{value0}}”",
+      "date": {
+        "last24h": "Last 24 hours",
+        "last7d": "Last 7 days",
+        "last30d": "Last 30 days",
+        "lastYear": "Last year",
+        "since": "Since",
+        "until": "Until"
+      },
+      "apply": "Apply",
+      "paths": {
+        "placeholder": "Repository-relative path",
+        "add": "Add",
+        "remove": "Remove {{value0}}"
+      },
+      "matchCaseShort": "Cc"
+    },
+    "refresh": "Refresh log",
+    "date": {
+      "today": "Today {{value0}}",
+      "yesterday": "Yesterday {{value0}}"
+    },
+    "refs": {
+      "openInNewTab": "Open in new Log tab",
+      "checkout": "Checkout",
+      "checkoutInUse": "Checked out in worktree {{value0}}",
+      "checkoutSucceeded": "Checked out {{value0}}",
+      "checkoutFailed": "Checkout {{value0}} failed",
+      "search": "Branch or tag",
+      "head": "HEAD (Current Branch)",
+      "local": "Local",
+      "remote": "Remote",
+      "tags": "Tags",
+      "more": "{{value0}} more — type to search"
+    },
+    "tabLabel": "Git Log",
+    "columns": {
+      "graph": "Graph",
+      "subject": "Subject",
+      "author": "Author",
+      "date": "Date",
+      "hash": "Hash",
+      "resize": "Resize {{value0}} column",
+      "reset": "Reset columns"
+    },
+    "graph": {
+      "hiddenCommits": "{{value0}} commits hidden — click to expand"
+    },
+    "collapseAll": "Collapse all linear branches",
+    "expandAll": "Expand all"
+  }
 }

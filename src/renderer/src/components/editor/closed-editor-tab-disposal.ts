@@ -16,6 +16,8 @@ import {
   sweepClosedPdfViewPositions
 } from './closed-editor-tab-cache-sweep'
 import { toEditorModelUri } from './editor-model-uri'
+import { gitLogTabActions } from '../git-log/git-log-store'
+import { worktreeIdFromGitLogTabId } from '@/store/slices/editor/actions/open-git-log'
 
 export type ClosedEditorTab = Pick<OpenFile, 'id' | 'mode' | 'filePath'> & {
   modelOwnerKey?: string
@@ -118,6 +120,13 @@ export function disposeClosedEditorTabCaches(
         break
       case 'check-details':
         break
+      case 'git-log': {
+        const worktreeId = worktreeIdFromGitLogTabId(closedFile.id)
+        if (worktreeId) {
+          gitLogTabActions.dispose(worktreeId)
+        }
+        break
+      }
     }
   }
   deletePaneScopedCacheEntries(scrollTopCache, scrollTopOwners)

@@ -1,3 +1,5 @@
+import type { GitLogFilters, GitLogRef } from './git-log-query'
+
 export type GitHistoryGraphColorId =
   | 'git-graph-ref'
   | 'git-graph-remote-ref'
@@ -57,6 +59,16 @@ export type GitHistoryItem = {
 export type GitHistoryOptions = {
   limit?: number
   baseRef?: string | null
+  /** Default `head` is the sidebar's workspace-HEAD history; `log` is the Git Log tab's multi-ref query. */
+  scope?: 'head' | 'log'
+  /** `log` scope only: commits to skip for paging. */
+  skip?: number
+  /** `log` scope only. */
+  filters?: GitLogFilters
+  /** `log` scope only: also return the branch/tag list for the ref tree. */
+  includeRefs?: boolean
+  /** Full commit oid: return only the branches containing it (no log walk). */
+  branchesContaining?: string
 }
 
 export type GitHistoryResult = {
@@ -69,6 +81,8 @@ export type GitHistoryResult = {
   hasOutgoingChanges: boolean
   hasMore: boolean
   limit: number
+  refs?: GitLogRef[]
+  containingBranches?: string[]
 }
 
 export type GitHistoryExecutor = (

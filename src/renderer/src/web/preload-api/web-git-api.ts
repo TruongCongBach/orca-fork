@@ -87,12 +87,11 @@ export function createGitApi(): NonNullable<Partial<PreloadApi>['git']> {
     // Why: the "add huge folder to .gitignore" flow is desktop-only; the web runtime makes no offer, so return no candidates.
     findHugeFoldersToIgnore: async () => [],
     appendGitignore: async () => false,
-    history: async ({ worktreePath, limit, baseRef }) => {
+    history: async ({ worktreePath, connectionId: _connectionId, ...options }) => {
       const worktree = await resolveRuntimeWorktreeByPath(worktreePath)
       return callRuntimeResult('git.history', {
         worktree: toRuntimeWorktreeSelector(worktree.id),
-        limit,
-        baseRef
+        ...options
       })
     },
     conflictOperation: async ({ worktreePath }) => {
@@ -111,6 +110,13 @@ export function createGitApi(): NonNullable<Partial<PreloadApi>['git']> {
       const worktree = await resolveRuntimeWorktreeByPath(worktreePath)
       await callRuntimeResult('git.abortRebase', {
         worktree: toRuntimeWorktreeSelector(worktree.id)
+      })
+    },
+    checkout: async ({ worktreePath, branch }) => {
+      const worktree = await resolveRuntimeWorktreeByPath(worktreePath)
+      await callRuntimeResult('git.checkout', {
+        worktree: toRuntimeWorktreeSelector(worktree.id),
+        branch
       })
     },
     diff: async ({ worktreePath, filePath, staged, compareAgainstHead }) => {

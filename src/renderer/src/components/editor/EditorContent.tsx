@@ -3,7 +3,7 @@ import type { MarkdownViewMode, OpenFile, PendingEditorReveal } from '@/store/sl
 import type { GitDiffResult } from '../../../../shared/git-diff-compare-types'
 import type { GitStatusEntry } from '../../../../shared/git-status-types'
 import { CheckRunDetailsPanel } from './CheckRunDetailsPanel'
-import { CombinedDiffViewer, MarkdownPreview } from './editor-lazy-views'
+import { CombinedDiffViewer, GitLogView, MarkdownPreview } from './editor-lazy-views'
 import { EditorConflictReviewSurface } from './EditorConflictReviewSurface'
 import { EditorDiffFileSurface } from './EditorDiffFileSurface'
 import { EditorEditFileSurface } from './EditorEditFileSurface'
@@ -123,6 +123,10 @@ export function EditorContent({
       activeFile.diffSource === 'combined-uncommitted' ||
       activeFile.diffSource === 'combined-branch' ||
       activeFile.diffSource === 'combined-commit')
+
+  if (activeFile.mode === 'git-log') {
+    return <GitLogView worktreeId={activeFile.worktreeId} />
+  }
 
   if (activeFile.mode === 'check-details') {
     const checkRunDetails = activeFile.checkRunDetails

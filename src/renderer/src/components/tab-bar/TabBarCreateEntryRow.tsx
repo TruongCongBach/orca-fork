@@ -4,6 +4,7 @@ import {
   FileText,
   GitCompare,
   Globe,
+  History,
   Loader2,
   Search,
   Smartphone,
@@ -170,6 +171,8 @@ function getActionPresentation(
         <FilePlus className="size-3.5 shrink-0" aria-hidden="true" />
       ) : option.option.kind === 'open-markdown' ? (
         <FileText className="size-3.5 shrink-0" aria-hidden="true" />
+      ) : option.option.kind === 'open-git-log' ? (
+        <History className="size-3.5 shrink-0" aria-hidden="true" />
       ) : option.option.kind === 'new-simulator' || option.option.kind === 'go-to-simulator' ? (
         <Smartphone className="size-3.5 shrink-0" aria-hidden="true" />
       ) : (

@@ -1,3 +1,27 @@
+## About this fork
+
+This is a fork of [Orca](https://github.com/stablyai/orca), maintained by [TruongCongBach](https://github.com/TruongCongBach).
+
+### Added features
+
+- **Git Log tab** — open a "Git Log" editor tab (from the tab bar's new-tab menu, the Cmd+J / Ctrl+J quick actions, or the Source Control overflow menu) to browse the commit graph of every branch in the active worktree, with resizable Graph / Subject / Author / Date / Hash columns and multiple Log tabs.
+- **Commit filters** — narrow the log by branch or tag, text or hash (with regex and match-case options), author, date range, and repository paths.
+- **Ref tree and commit details** — browse local branches, remote branches, and tags in a side tree, and select a commit to see its changed files and which branches contain it.
+- **Branch path hover highlight** — hovering a line in the graph highlights that whole branch path, WebStorm-style.
+- **Collapse / expand graph branches** — click a branch line to collapse it into a "N commits hidden" marker and click again to expand it, or use "Collapse all linear branches" / "Expand all".
+- **Checkout from the Git Log** — check out a branch straight from the ref tree; checking out a remote-only branch creates a local branch that tracks it, and branches already checked out in another worktree are shown as unavailable. A dedicated `git:checkout` handler performs the checkout and shows a readable error when it fails.
+
+### Branches
+
+- `feat/git-log-window` — holds the fork's work.
+- `main` — mirrors upstream Orca.
+
+### Build / run
+
+Follow the existing [Developing](#developing) instructions below (see [CONTRIBUTING.md](.github/CONTRIBUTING.md)).
+
+---
+
 <h1 align="center">
   <a href="https://onOrca.dev"><img src="resources/build/icon.png" alt="Orca" width="64" valign="middle" /></a> Orca
 </h1>

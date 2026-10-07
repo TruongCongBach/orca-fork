@@ -16,6 +16,7 @@ import {
 import { computeDiff, type GitExec } from './git-handler-ops'
 import { checkIgnoredPathsOp } from './git-handler-check-ignore'
 import { loadGitHistoryFromExecutor } from '../shared/git-history'
+import { normalizeGitHistoryOptions } from '../shared/git-log-loader'
 import { stableInFlightKey } from '../shared/in-flight-promise-dedupe'
 
 function resolveSubmoduleStatusArea(
@@ -97,10 +98,7 @@ export class GitHandlerReadOperations extends GitHandlerOperationContext {
     const result = await loadGitHistoryFromExecutor(
       this.gitForSignal(context?.signal),
       worktreePath,
-      {
-        limit: typeof params.limit === 'number' ? params.limit : undefined,
-        baseRef: typeof params.baseRef === 'string' ? params.baseRef : null
-      }
+      normalizeGitHistoryOptions(params)
     )
     context?.signal?.throwIfAborted()
     return result

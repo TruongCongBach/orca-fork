@@ -75,9 +75,25 @@ export const GitCommitCompare = WorktreeSelector.extend({
     .pipe(FullGitObjectId)
 })
 
+const GitLogFiltersParams = z.object({
+  text: z.string().max(500).optional(),
+  textRegex: z.boolean().optional(),
+  textMatchCase: z.boolean().optional(),
+  revisions: z.array(z.string().max(500)).max(50).optional(),
+  author: z.string().max(500).optional(),
+  since: z.string().max(100).optional(),
+  until: z.string().max(100).optional(),
+  paths: z.array(z.string().max(1000)).max(50).optional()
+})
+
 export const GitHistory = WorktreeSelector.extend({
   limit: z.number().int().min(1).max(200).optional(),
-  baseRef: z.string().nullable().optional()
+  baseRef: z.string().nullable().optional(),
+  scope: z.enum(['head', 'log']).optional(),
+  skip: z.number().int().min(0).max(1_000_000).optional(),
+  filters: GitLogFiltersParams.optional(),
+  includeRefs: z.boolean().optional(),
+  branchesContaining: FullGitObjectId.optional()
 })
 
 export const GitBranchDiff = GitFilePath.extend({

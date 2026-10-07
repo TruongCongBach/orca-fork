@@ -10,7 +10,7 @@ export function openWorkspaceEditorItem(
   fileId: string,
   worktreeId: string,
   label: string,
-  contentType: 'editor' | 'diff' | 'conflict-review' | 'check-details',
+  contentType: 'editor' | 'diff' | 'conflict-review' | 'check-details' | 'git-log',
   isPreview?: boolean,
   targetGroupId?: string,
   selection: EditorTabSelection = 'focus'

@@ -11,6 +11,7 @@ export type TabCreateMenuOptionKind =
   | 'new-terminal'
   | 'new-terminal-shell'
   | 'open-markdown'
+  | 'open-git-log'
 
 export type TabCreateMenuOption = {
   id: string
@@ -24,6 +25,8 @@ export type TabCreateMenuOptionsContext = {
   hasNewBrowser: boolean
   hasNewMarkdown: boolean
   hasOpenMarkdown: boolean
+  /** Git Log is a per-worktree singleton; selecting it focuses an open one. */
+  hasGitLog?: boolean
   hasSimulator: boolean
   simulatorIsGoTo: boolean
   terminalOnly: boolean
@@ -141,6 +144,20 @@ export function buildTabCreateMenuOptions(
         translate('auto.components.tab.bar.tab.create.menu.options.5f17fb9d0c', 'markdown'),
         translate('auto.components.tab.bar.tab.create.menu.options.44caaf7b36', 'md'),
         translate('auto.components.tab.bar.tab.create.menu.options.164c394bab', 'open file')
+      ]
+    })
+  }
+
+  if (context.hasGitLog) {
+    const label = translate('gitLog.tabLabel', 'Git Log')
+    options.push({
+      id: 'open-git-log',
+      kind: 'open-git-log',
+      label,
+      keywords: [
+        translate('gitLog.verbs.gitLog', 'git log'),
+        translate('gitLog.verbs.history', 'git history'),
+        translate('gitLog.verbs.commits', 'commits')
       ]
     })
   }

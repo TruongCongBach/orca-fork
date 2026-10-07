@@ -40,6 +40,27 @@ export async function abortRuntimeGitRebase(context: RuntimeGitContext): Promise
   )
 }
 
+export async function checkoutRuntimeGitBranch(
+  context: RuntimeGitContext,
+  branch: string
+): Promise<void> {
+  const target = getActiveRuntimeTarget(context.settings)
+  if (target.kind === 'local' || !context.worktreeId) {
+    await window.api.git.checkout({
+      worktreePath: resolveLocalWorktreePath(context),
+      branch,
+      connectionId: context.connectionId
+    })
+    return
+  }
+  await callRuntimeRpc(
+    target,
+    'git.checkout',
+    { worktree: toRuntimeWorktreeSelector(context.worktreeId), branch },
+    { timeoutMs: 30_000 }
+  )
+}
+
 export async function getRuntimeGitUpstreamStatus(
   context: RuntimeGitContext,
   pushTarget?: GitPushTarget

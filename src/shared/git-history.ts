@@ -1,17 +1,16 @@
 import {
   GIT_HISTORY_COMMIT_FORMAT,
   gitHistoryRefFromFullName,
-  parseGitHistoryLog,
-  shortGitHash
+  parseGitHistoryLog
 } from './git-history-log-parser'
-import {
-  GIT_HISTORY_DEFAULT_LIMIT,
-  GIT_HISTORY_MAX_LIMIT,
-  type GitHistoryExecutor,
-  type GitHistoryItemRef,
-  type GitHistoryOptions,
-  type GitHistoryResult
+import { clampHistoryLimit, resolveCommit, resolveCurrentRef } from './git-history-resolve'
+import type {
+  GitHistoryExecutor,
+  GitHistoryItemRef,
+  GitHistoryOptions,
+  GitHistoryResult
 } from './git-history-types'
+import { loadGitLogFromExecutor } from './git-log-loader'
 
 export type {
   GitHistoryExecutor,
@@ -32,36 +31,6 @@ export {
   GIT_HISTORY_REMOTE_REF_COLOR
 } from './git-history-types'
 export { compareGitHistoryItemRefsByCategory, parseGitHistoryLog } from './git-history-log-parser'
-
-function clampHistoryLimit(limit: number | undefined): number {
-  if (!Number.isFinite(limit)) {
-    return GIT_HISTORY_DEFAULT_LIMIT
-  }
-  return Math.min(
-    GIT_HISTORY_MAX_LIMIT,
-    Math.max(1, Math.trunc(limit ?? GIT_HISTORY_DEFAULT_LIMIT))
-  )
-}
-
-async function resolveCommit(
-  git: GitHistoryExecutor,
-  cwd: string,
-  ref: string
-): Promise<string | null> {
-  if (!ref || ref.startsWith('-')) {
-    return null
-  }
-  try {
-    const { stdout } = await git(
-      ['rev-parse', '--verify', '--end-of-options', `${ref}^{commit}`],
-      cwd
-    )
-    const oid = stdout.trim()
-    return oid || null
-  } catch {
-    return null
-  }
-}
 
 async function resolveSymbolicFullName(
   git: GitHistoryExecutor,
@@ -88,35 +57,6 @@ async function resolveSymbolicFullName(
     )
   } catch {
     return null
-  }
-}
-
-async function resolveCurrentRef(
-  git: GitHistoryExecutor,
-  cwd: string,
-  headOid: string
-): Promise<{ currentRef: GitHistoryItemRef; branchName: string | null }> {
-  try {
-    const { stdout } = await git(['symbolic-ref', '--quiet', '--short', 'HEAD'], cwd)
-    const branchName = stdout.trim()
-    if (branchName) {
-      return {
-        branchName,
-        currentRef: {
-          id: `refs/heads/${branchName}`,
-          name: branchName,
-          revision: headOid,
-          category: 'branches'
-        }
-      }
-    }
-  } catch {
-    // Detached HEAD.
-  }
-
-  return {
-    branchName: null,
-    currentRef: { id: headOid, name: shortGitHash(headOid), revision: headOid, category: 'commits' }
   }
 }
 
@@ -169,6 +109,9 @@ export async function loadGitHistoryFromExecutor(
   cwd: string,
   options: GitHistoryOptions = {}
 ): Promise<GitHistoryResult> {
+  if (options.scope === 'log' || options.branchesContaining) {
+    return loadGitLogFromExecutor(git, cwd, options)
+  }
   const limit = clampHistoryLimit(options.limit)
   const headOid = await resolveCommit(git, cwd, 'HEAD')
   if (!headOid) {

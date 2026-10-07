@@ -64,7 +64,8 @@ export function createRecentlyClosedEditorTabs(
             (item.contentType === 'editor' ||
               item.contentType === 'diff' ||
               item.contentType === 'conflict-review' ||
-              item.contentType === 'check-details') &&
+              item.contentType === 'check-details' ||
+              item.contentType === 'git-log') &&
             (!activeWorktreeId || item.worktreeId === activeWorktreeId)
         )
         .map((item) => item.id)

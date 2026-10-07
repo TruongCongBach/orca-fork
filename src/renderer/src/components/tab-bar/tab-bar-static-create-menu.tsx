@@ -1,5 +1,5 @@
 import React from 'react'
-import { FilePlus, FileText, Globe, Smartphone, TerminalSquare } from 'lucide-react'
+import { FilePlus, FileText, Globe, History, Smartphone, TerminalSquare } from 'lucide-react'
 import { translate } from '@/i18n/i18n'
 import { DropdownMenuItem, DropdownMenuShortcut } from '@/components/ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
@@ -12,6 +12,7 @@ import {
 } from './use-tab-bar-runtime-model'
 import type { TabBarProps } from './tab-bar-props'
 import { resolveWindowsShellLaunchTarget } from './windows-shell-launch'
+import { openGitLogTab, useGitLogTabAvailable } from './use-tab-create-menu-options'
 
 export function TabBarStaticCreateMenu({
   terminalOnly,
@@ -59,6 +60,7 @@ export function TabBarStaticCreateMenu({
     onNewFileTab,
     onOpenFileTab
   } = props
+  const gitLogAvailable = useGitLogTabAvailable(props.worktreeId)
   const defaultTerminalMenuItems =
     windowsShellEntries && onNewTerminalWithShell ? (
       windowsShellEntries.map((entry, index) => {
@@ -168,6 +170,16 @@ export function TabBarStaticCreateMenu({
         ) : null}
       </DropdownMenuItem>
     ) : null
+  const gitLogMenuItem =
+    !terminalOnly && gitLogAvailable ? (
+      <DropdownMenuItem
+        onSelect={() => openGitLogTab(props.worktreeId)}
+        className="gap-2 rounded-[7px] px-2 py-1.5 text-[12px] leading-5 font-medium"
+      >
+        <History className="size-4 text-muted-foreground" />
+        {translate('gitLog.tabLabel', 'Git Log')}
+      </DropdownMenuItem>
+    ) : null
   const mobileEmulatorIntroMenuBlock =
     showMobileEmulatorIntroCallout &&
     !terminalOnly &&
@@ -193,6 +205,7 @@ export function TabBarStaticCreateMenu({
       {newBrowserMenuItem}
       {newMarkdownMenuItem}
       {openMarkdownMenuItem}
+      {gitLogMenuItem}
       {newSimulatorMenuItem}
       {mobileEmulatorIntroMenuBlock}
     </>

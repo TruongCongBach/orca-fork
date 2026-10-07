@@ -48,7 +48,7 @@ export function EditorPanelHeaderPath({
   const displayPath = splitPathForDisplay(headerCopyState.pathLabel)
   const canCopyHeaderPath = headerCopyState.copyText !== null
   // Why: virtual editor tabs use synthetic ids instead of on-disk paths.
-  const isVirtualEditorTab = activeFile.mode === 'check-details'
+  const isVirtualEditorTab = activeFile.mode === 'check-details' || activeFile.mode === 'git-log'
   const revealBlocked = useAppStore((s) =>
     isRevealInFileManagerBlocked(s.settings, {
       connectionId:

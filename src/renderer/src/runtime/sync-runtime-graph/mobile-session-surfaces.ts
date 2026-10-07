@@ -83,7 +83,9 @@ export function isMobileFileDiffSource(
 
 export function isMobilePublishableOpenFile(file: AppState['openFiles'][number]): boolean {
   // Combined diff tabs use display labels as paths and need the desktop renderer.
+  // Git Log is a desktop-only view with no mobile tab kind.
   return !(
+    file.mode === 'git-log' ||
     file.diffSource === 'combined-all' ||
     file.diffSource === 'combined-uncommitted' ||
     file.diffSource === 'combined-branch' ||

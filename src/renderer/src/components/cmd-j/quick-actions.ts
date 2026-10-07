@@ -1,4 +1,4 @@
-import { FileText, FolderPlus, Globe, Play, SquareTerminal, Trash2 } from 'lucide-react'
+import { FileText, FolderPlus, Globe, History, Play, SquareTerminal, Trash2 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import type { CmdJQuickActionAvailability, CmdJQuickActionContext } from './quick-action-context'
 import {
@@ -7,6 +7,7 @@ import {
   getWorkspaceScopedActionAvailability
 } from './quick-action-context'
 import { translate } from '@/i18n/i18n'
+import { useAppStore } from '@/store'
 import { createLocalizedCatalog } from '@/i18n/localized-catalog'
 import { getNativeChatSplitQuickActions } from './native-chat-split-quick-actions'
 
@@ -125,6 +126,33 @@ export const getCmdJQuickActions = createLocalizedCatalog((): CmdJQuickAction[] 
     ],
     isAvailable: workspaceActionAvailability,
     run: (ctx) => runWorkspaceAction(ctx, ctx.openNewTerminalTab)
+  },
+  {
+    id: 'open-git-log',
+    kind: 'action',
+    title: translate('gitLog.open', 'Open Git Log'),
+    description: translate(
+      'gitLog.openDescription',
+      'Browse the commit graph of every branch in the active worktree.'
+    ),
+    icon: History,
+    verbKeywords: [
+      translate('gitLog.verbs.gitLog', 'git log'),
+      translate('gitLog.verbs.history', 'git history'),
+      translate('gitLog.verbs.commits', 'commits')
+    ],
+    isAvailable: currentWorkspaceActionAvailability,
+    run: async (ctx) => {
+      const availability = currentWorkspaceActionAvailability(ctx)
+      if (!availability.available || !ctx.activeWorktreeId) {
+        return {
+          status: 'unavailable',
+          reason: availability.available ? 'no-active-workspace' : availability.reason
+        }
+      }
+      useAppStore.getState().openGitLog(ctx.activeWorktreeId)
+      return { status: 'ok' }
+    }
   },
   ...getNativeChatSplitQuickActions(),
   {

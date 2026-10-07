@@ -161,6 +161,8 @@ export type EditorFilesSlice = {
     state: CheckRunDetailsTabPatch
   ) => void
   reloadOpenCheckRunDetailsTab: (fileId: string) => Promise<void>
+  /** Opens (or focuses) the worktree's single Git Log tab. */
+  openGitLog: (worktreeId: string) => void
   openBranchAllDiffs: (
     worktreeId: string,
     worktreePath: string,

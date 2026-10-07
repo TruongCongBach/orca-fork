@@ -141,7 +141,9 @@ export function createCloseFileAction(
           closedFile &&
           wtRecent &&
           !shouldDeleteFromDisk &&
-          closedFile.mode !== 'markdown-preview'
+          closedFile.mode !== 'markdown-preview' &&
+          // Why: Git Log is reopened from Source Control / Cmd+J; its sub-tabs are not snapshotted.
+          closedFile.mode !== 'git-log'
         ) {
           const {
             id: _id,
@@ -211,7 +213,8 @@ export function createCloseFileAction(
             (entry.contentType === 'editor' ||
               entry.contentType === 'diff' ||
               entry.contentType === 'conflict-review' ||
-              entry.contentType === 'check-details')
+              entry.contentType === 'check-details' ||
+              entry.contentType === 'git-log')
         )
         if (unifiedTab) {
           get().closeUnifiedTab(unifiedTab.id)

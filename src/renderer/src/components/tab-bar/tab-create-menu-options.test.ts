@@ -21,6 +21,26 @@ describe('tab create menu options', () => {
     simulatorIsGoTo: false
   })
 
+  it('offers Git Log only when the worktree is a Git repository', () => {
+    const base = {
+      terminalOnly: false,
+      hasNewBrowser: true,
+      hasNewMarkdown: true,
+      hasOpenMarkdown: true,
+      hasSimulator: false,
+      simulatorIsGoTo: false
+    }
+    const withGitLog = buildTabCreateMenuOptions({ ...base, hasGitLog: true })
+    expect(withGitLog.map((option) => option.kind)).toContain('open-git-log')
+    expect(
+      findMatchingTabCreateMenuOptions('git log', withGitLog).map((option) => option.kind)
+    ).toEqual(['open-git-log'])
+    expect(buildTabCreateMenuOptions(base).map((option) => option.kind)).not.toContain(
+      'open-git-log'
+    )
+    expect(buildTabCreateMenuOptions({ ...base, terminalOnly: true, hasGitLog: true })).toEqual([])
+  })
+
   it('matches mobile emulator aliases to the simulator menu action', () => {
     expect(
       findMatchingTabCreateMenuOptions('mobile emulator', defaultOptions).map(

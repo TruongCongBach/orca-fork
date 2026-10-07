@@ -1,5 +1,13 @@
 import React from 'react'
-import { List, ListTree, MessageSquare, MoreHorizontal, RefreshCw, Settings2 } from 'lucide-react'
+import {
+  History,
+  List,
+  ListTree,
+  MessageSquare,
+  MoreHorizontal,
+  RefreshCw,
+  Settings2
+} from 'lucide-react'
 import type { SourceControlViewMode } from '../../../../../../shared/ui-chrome-types'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
@@ -11,6 +19,7 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { translate } from '@/i18n/i18n'
+import { useAppStore } from '@/store'
 
 export function SourceControlHeaderOverflowMenu({
   sourceControlViewMode,
@@ -31,6 +40,8 @@ export function SourceControlHeaderOverflowMenu({
   diffCommentCount: number
   onExpandNotes: () => void
 }): React.JSX.Element {
+  const activeWorktreeId = useAppStore((s) => s.activeWorktreeId)
+  const openGitLog = useAppStore((s) => s.openGitLog)
   const viewModeLabel =
     sourceControlViewMode === 'tree'
       ? translate('auto.components.right.sidebar.SourceControl.a91f8e2b01', 'View as list')
@@ -76,6 +87,13 @@ export function SourceControlHeaderOverflowMenu({
         <DropdownMenuItem onSelect={onChangeBaseRef}>
           <Settings2 className="size-3.5" />
           {translate('auto.components.right.sidebar.SourceControl.476b77745b', 'Change Base Ref')}…
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          disabled={!activeWorktreeId}
+          onSelect={() => activeWorktreeId && openGitLog(activeWorktreeId)}
+        >
+          <History className="size-3.5" />
+          {translate('gitLog.open', 'Open Git Log')}
         </DropdownMenuItem>
         <DropdownMenuItem disabled={branchCompareRefreshDisabled} onSelect={onRefreshBranchCompare}>
           <RefreshCw className="size-3.5" />
