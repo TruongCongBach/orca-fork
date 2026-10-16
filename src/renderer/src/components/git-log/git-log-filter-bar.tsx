@@ -7,6 +7,7 @@ import type { GitLogFilters, GitLogRef } from '../../../../shared/git-log-query'
 import { GitLogFilterChip, GitLogPickerList, type GitLogPickerOption } from './git-log-filter-chip'
 import { GitLogDatePanel, GitLogPathsPanel } from './git-log-filter-panels'
 import { shortRevisionName } from './git-log-tabs-model'
+import { isImeOwnedKeyboardEvent } from '@/lib/ime-composition-keyboard-event'
 
 const TEXT_DEBOUNCE_MS = 350
 
@@ -115,7 +116,7 @@ export function GitLogFilterBar({
           value={draftText}
           onChange={(event) => setDraftText(event.target.value)}
           onKeyDown={(event) => {
-            if (event.key === 'Enter') {
+            if (event.key === 'Enter' && !isImeOwnedKeyboardEvent(event)) {
               onChange({ text: draftText })
             }
           }}

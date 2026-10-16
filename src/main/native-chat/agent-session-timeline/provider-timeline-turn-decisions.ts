@@ -164,8 +164,7 @@ export function decideTurnSettled(
     ends: { turnItemId: turn.itemId, current: true },
     settle: {
       what: 'turn-settled',
-      resolve: (journal) =>
-        providerTimelineSettlement(journal, { turnItemId: turn.itemId, promptsOnly: true })
+      resolve: (journal) => providerTimelineSettlement(journal, { turnItemId: turn.itemId })
     },
     commit: (next) => next.stopTurn(turn)
   }
@@ -261,10 +260,12 @@ export function decideSessionEnd(
   return {
     settle: {
       what: 'session-end',
+      recovered: true,
       resolve: (journal) =>
         providerTimelineSettlement(journal, 'session', {
           turns: runningProviderTimelineTurns(journal),
-          end: event.verdict
+          end: event.verdict,
+          ...(event.endedAt !== undefined ? { lostAt: event.endedAt } : {})
         })
     },
     commit: (next) => next.endSession()

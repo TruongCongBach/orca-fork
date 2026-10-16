@@ -1,3 +1,4 @@
+import { normalizeHostTurnRevision } from '../../../shared/agent-hook-interrupt-reconciliation'
 import { readAgentProcessPresence } from '../../../shared/agent-process-presence'
 import { track } from '../../telemetry/client'
 import { normalizeAgentStatusPayload } from '../../../shared/agent-status-types'
@@ -105,6 +106,7 @@ export abstract class AgentHookServerIngestRemote extends AgentHookServerIngestS
       worktreeId,
       promptInteractionKey,
       toolUseId,
+      claudeSettledRequests,
       toolAgentId,
       teammateName,
       toolAgentType,
@@ -258,6 +260,7 @@ export abstract class AgentHookServerIngestRemote extends AgentHookServerIngestS
       ...(restartedAuthority?.authorityRestartId
         ? { authorityRestartId: restartedAuthority.authorityRestartId }
         : {}),
+      hostTurnRevision: normalizeHostTurnRevision(envelope.hostTurnRevision),
       launchToken: statusDisposition === 'restart' ? undefined : envelope.launchToken,
       tabId,
       worktreeId,
@@ -269,6 +272,7 @@ export abstract class AgentHookServerIngestRemote extends AgentHookServerIngestS
       grokPromptBoundary,
       compactTrigger,
       toolUseId,
+      ...(claudeSettledRequests ? { claudeSettledRequests } : {}),
       toolAgentId,
       teammateName,
       toolAgentType,

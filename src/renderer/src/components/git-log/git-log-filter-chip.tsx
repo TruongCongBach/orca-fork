@@ -3,6 +3,7 @@ import { ChevronDown, X } from 'lucide-react'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { translate } from '@/i18n/i18n'
 import { cn } from '@/lib/utils'
+import { isImeOwnedKeyboardEvent } from '@/lib/ime-composition-keyboard-event'
 
 /** Filter-bar button (`Branch: main ▾  ×`) that opens arbitrary picker content in a popover. */
 export function GitLogFilterChip({
@@ -89,7 +90,12 @@ export function GitLogPickerList({
         value={query}
         onChange={(event) => setQuery(event.target.value)}
         onKeyDown={(event) => {
-          if (event.key === 'Enter' && allowCustom && query.trim()) {
+          if (
+            event.key === 'Enter' &&
+            !isImeOwnedKeyboardEvent(event) &&
+            allowCustom &&
+            query.trim()
+          ) {
             onPick(query.trim())
           }
         }}

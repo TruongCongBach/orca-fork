@@ -73,11 +73,15 @@ describe('structured agent-session read transport generations', () => {
     })
   })
 
-  function start(applyEvent: (event: AgentSessionSubscribeEvent) => void, applyError = vi.fn()) {
+  function start(
+    applyEvent: Parameters<typeof startStructuredAgentSessionReadTransport>[0]['applyEvent'],
+    applyError = vi.fn()
+  ) {
     return startStructuredAgentSessionReadTransport({
       applyEvent,
       applyError,
       getCursor: () => null,
+      onContactLost: vi.fn(),
       onHistoryReadInvalidated: () => undefined,
       hydrate: async () => undefined,
       sessionId: 'session-a',
@@ -95,6 +99,7 @@ describe('structured agent-session read transport generations', () => {
         },
         applyError: vi.fn(),
         getCursor: () => state.cursor,
+        onContactLost: vi.fn(),
         onHistoryReadInvalidated: () => undefined,
         sessionId: 'session-a',
         target
@@ -185,6 +190,49 @@ describe('structured agent-session read transport generations', () => {
       vi.useRealTimers()
     }
   })
+
+  it("applies each subscription's first batch alone and marked, and coalesces the rest", async () => {
+    vi.useFakeTimers()
+    try {
+      const applied: [number | undefined, boolean][] = []
+      const batch = (sequence: number): AgentSessionSubscribeEvent => ({
+        type: 'batch',
+        sessionId: 'session-a',
+        batch: {
+          cursor: { epoch: 'epoch-a', sequence },
+          items: [],
+          removedItemIds: [],
+          submissions: []
+        }
+      })
+      const transport = start((event, options) => {
+        applied.push([
+          event.type === 'batch' ? event.batch.cursor.sequence : undefined,
+          options?.opensSubscription === true
+        ])
+      })
+      await flushPromises()
+      attempts[0].onEvent(batch(1))
+      attempts[0].onEvent(batch(2))
+      attempts[0].onEvent(batch(3))
+      expect(applied).toEqual([[1, true]])
+      await vi.advanceTimersByTimeAsync(60)
+      expect(applied).toEqual([
+        [1, true],
+        [3, false]
+      ])
+
+      attempts[0].closed.resolve({ unsubscribe: attempts[0].unsubscribe })
+      await flushPromises()
+      attempts[0].onClose()
+      await vi.advanceTimersByTimeAsync(750)
+      attempts[1].onEvent(batch(4))
+      expect(applied.at(-1)).toEqual([4, true])
+      transport.dispose()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
 })
 
 // The refusal a host raises for a session it holds no object for — after a chat close, or before
@@ -221,6 +269,7 @@ describe('structured agent-session read transport unattached refusals', () => {
       applyEvent,
       applyError,
       getCursor: () => null,
+      onContactLost: vi.fn(),
       onHistoryReadInvalidated: () => undefined,
       hydrate,
       sessionId: 'session-a',
@@ -570,6 +619,7 @@ describe('structured agent-session read transport unattached refusals', () => {
         applyEvent: vi.fn(),
         applyError: vi.fn(),
         getCursor: () => null,
+        onContactLost: vi.fn(),
         onHistoryReadInvalidated: () => undefined,
         hydrate: async () => undefined,
         sessionId: 'session-a',

@@ -4,7 +4,8 @@ import { toast } from 'sonner'
 import { translate } from '@/i18n/i18n'
 import { basename } from '@/lib/path'
 import { cn } from '@/lib/utils'
-import { checkoutRuntimeGitBranch, type RuntimeGitContext } from '@/runtime/runtime-git-client'
+import { checkoutRuntimeGitBranch } from '@/runtime/runtime-git-sync-client'
+import type { RuntimeGitContext } from '@/runtime/runtime-git-client-context'
 import { useWorktreeMap } from '@/store/selectors'
 import type { GitHistoryItem, GitHistoryItemRef } from '../../../../shared/git-history'
 import type { GitLogFilters, GitLogRef } from '../../../../shared/git-log-query'
@@ -152,7 +153,7 @@ function GitLogTabBody({
   const commitActions = useGitHistoryCommitActions({
     activeWorktreeId: worktreeId,
     worktreePath: context?.worktreePath ?? null,
-    activeRepoSettings: context?.settings ?? null,
+    activeRepoTarget: context?.target ?? null,
     resolveSplitTargetGroupId: NO_SPLIT_TARGET
   })
 

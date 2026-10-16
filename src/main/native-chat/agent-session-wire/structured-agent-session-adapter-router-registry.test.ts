@@ -59,6 +59,8 @@ function fakeAdapter(
 /** An agent this build does not ship, declared the way a new adapter would declare itself. */
 const PILOT: StructuredAgentDefinition = {
   agent: 'grok',
+  handleTransport: 'acp',
+  accountHomeVariable: 'GROK_HOME',
   capabilities: {
     rewind: false,
     compact: false,
@@ -190,7 +192,7 @@ describe('structured agent definitions', () => {
       rewind: true,
       compact: true,
       threadGoal: true,
-      contextUsage: false,
+      contextUsage: true,
       imagePrompts: true,
       steering: 'inject',
       approvalEnforcement: 'provider'

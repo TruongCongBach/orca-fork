@@ -3,7 +3,7 @@ import {
   createCompatibleRuntimeStatusResponseIfNeeded,
   type RuntimeEnvironmentCallRequest
 } from './runtime-compatibility-test-fixture'
-import { checkoutRuntimeGitBranch } from './runtime-git-client'
+import { checkoutRuntimeGitBranch } from './runtime-git-sync-client'
 import { clearRuntimeCompatibilityCacheForTests } from './runtime-rpc-client'
 
 const gitCheckout = vi.fn()
@@ -28,12 +28,12 @@ beforeEach(() => {
 })
 
 describe('checkoutRuntimeGitBranch', () => {
-  it('uses local git IPC (with the SSH connection) when no remote runtime is active', async () => {
+  it('uses local git IPC (with the SSH connection) for a local target', async () => {
     gitCheckout.mockResolvedValue(undefined)
 
     await checkoutRuntimeGitBranch(
       {
-        settings: { activeRuntimeEnvironmentId: null },
+        target: { kind: 'local' },
         worktreeId: 'wt-1',
         worktreePath: '/repo',
         connectionId: 'ssh-1'
@@ -59,7 +59,7 @@ describe('checkoutRuntimeGitBranch', () => {
 
     await checkoutRuntimeGitBranch(
       {
-        settings: { activeRuntimeEnvironmentId: 'env-1' },
+        target: { kind: 'environment', environmentId: 'env-1' },
         worktreeId: 'wt-1',
         worktreePath: '/repo'
       },
@@ -89,7 +89,7 @@ describe('checkoutRuntimeGitBranch', () => {
     await expect(
       checkoutRuntimeGitBranch(
         {
-          settings: { activeRuntimeEnvironmentId: 'env-1' },
+          target: { kind: 'environment', environmentId: 'env-1' },
           worktreeId: 'wt-1',
           worktreePath: '/repo'
         },

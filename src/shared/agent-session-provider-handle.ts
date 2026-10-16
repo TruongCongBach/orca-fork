@@ -35,15 +35,25 @@ export type { AgentSessionProviderHandleReplacement } from './agent-session-prov
 export {
   agentSessionProviderHandleKey,
   agentSessionProviderHandleRoot,
-  isAgentSessionProviderHandle
+  isAgentSessionProviderHandle,
+  isStructuredAgentId
 } from './agent-session-provider-handle-encoding'
 
-/** The structured lanes this build drives. A record names one; a handle never does. */
+/**
+ * The structured agents every build ships. They are not the whole set: a host may register more,
+ * advertises that it does with the registered-agents capability, and lists them through
+ * `agentSession.agents`. A client that has not learned a host's list knows only these.
+ */
 export const AGENT_SESSION_PROVIDER_HANDLE_PROVIDERS = ['claude', 'codex'] as const
 
 export type AgentSessionHandleProvider = (typeof AGENT_SESSION_PROVIDER_HANDLE_PROVIDERS)[number]
 
-/** Runtime guard for persisted/remote provider metadata. Unknown values must not impersonate Codex. */
+/** A structured agent a host registered: one of the built-ins or any agent id the host lists.
+ *  Checked as a slug by `isStructuredAgentId`; whether a host runs it is its registry's answer. */
+export type StructuredAgentId = string
+
+/** Whether an agent is one of the two built-ins, for features only they have. It does NOT answer
+ *  whether an agent has a structured chat: that is `isStructuredAgentId` plus the host's registry. */
 export function isAgentSessionHandleProvider(value: unknown): value is AgentSessionHandleProvider {
   return value === 'claude' || value === 'codex'
 }

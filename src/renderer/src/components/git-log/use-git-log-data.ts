@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { getRuntimeGitHistory, type RuntimeGitContext } from '@/runtime/runtime-git-client'
+import { getRuntimeGitHistory } from '@/runtime/runtime-git-status-client'
+import type { RuntimeGitContext } from '@/runtime/runtime-git-client-context'
 import type { GitHistoryItem, GitHistoryItemRef } from '../../../../shared/git-history'
 import {
   normalizeGitLogFilters,

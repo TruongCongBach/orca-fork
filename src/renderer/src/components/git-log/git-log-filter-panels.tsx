@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { X } from 'lucide-react'
 import { translate } from '@/i18n/i18n'
 import { toGitDateInput } from './git-log-format'
+import { isImeOwnedKeyboardEvent } from '@/lib/ime-composition-keyboard-event'
 
 const DATE_PRESET_DAYS = [1, 7, 30, 365] as const
 
@@ -101,7 +102,7 @@ export function GitLogPathsPanel({
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
           onKeyDown={(event) => {
-            if (event.key === 'Enter') {
+            if (event.key === 'Enter' && !isImeOwnedKeyboardEvent(event)) {
               add()
             }
           }}

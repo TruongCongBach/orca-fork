@@ -1,9 +1,9 @@
 import { useMemo } from 'react'
 import { getConnectionId } from '@/lib/connection-context'
-import { getRepoOwnerRoutedSettings } from '@/lib/repo-runtime-owner'
-import type { RuntimeGitContext } from '@/runtime/runtime-git-client'
-import { useAppStore } from '@/store'
+import { ipcOrRuntimeTargetForHostId } from '@/runtime/runtime-client-target'
+import type { RuntimeGitContext } from '@/runtime/runtime-git-client-context'
 import { useRepoById, useWorktreeMap } from '@/store/selectors'
+import { getRepoExecutionHostId } from '../../../../shared/execution-host'
 
 /**
  * Resolves the git routing context for the worktree that owns a Git Log tab. Mirrors the Source
@@ -12,25 +12,27 @@ import { useRepoById, useWorktreeMap } from '@/store/selectors'
 export function useGitLogContext(worktreeId: string): RuntimeGitContext | null {
   const worktree = useWorktreeMap().get(worktreeId)
   const repo = useRepoById(worktree?.repoId ?? null)
-  const settings = useAppStore((s) => s.settings)
   const repoId = repo?.id ?? null
   const repoConnectionId = repo?.connectionId ?? null
   const repoExecutionHostId = repo?.executionHostId ?? null
   const worktreePath = worktree?.path ?? null
   return useMemo(() => {
-    if (!worktreePath) {
+    const target = repoId
+      ? ipcOrRuntimeTargetForHostId(
+          getRepoExecutionHostId({
+            connectionId: repoConnectionId,
+            executionHostId: repoExecutionHostId
+          })
+        )
+      : null
+    if (!worktreePath || !target) {
       return null
     }
     return {
-      settings: getRepoOwnerRoutedSettings(
-        settings,
-        repoId
-          ? { id: repoId, connectionId: repoConnectionId, executionHostId: repoExecutionHostId }
-          : null
-      ),
+      target,
       worktreeId,
       worktreePath,
       connectionId: getConnectionId(worktreeId) ?? repoConnectionId ?? undefined
     }
-  }, [repoConnectionId, repoExecutionHostId, repoId, settings, worktreeId, worktreePath])
+  }, [repoConnectionId, repoExecutionHostId, repoId, worktreeId, worktreePath])
 }

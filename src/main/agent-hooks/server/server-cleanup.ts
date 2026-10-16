@@ -13,7 +13,7 @@ import {
   type ExecutionHostScope
 } from '../../../shared/execution-host'
 import { worktreeIdsEqual } from '../../../shared/worktree/id'
-import { isWslHookRelayConnectionId } from '../../../shared/wsl-hook-relay-contract'
+import { isLocalHookConnectionId } from '../../../shared/wsl-hook-relay-contract'
 import type { EnrichedAgentHookEventPayload } from './server-types'
 import { AgentHookServerAuthorityFences } from './server-authority-fences'
 
@@ -126,17 +126,27 @@ export abstract class AgentHookServerCleanup extends AgentHookServerAuthorityFen
     paneKeys: Iterable<string>,
     options?: {
       endedPresence?: AgentProcessPresence
-      /** The pane's PTY outlived its agent (a confirmed shell foreground), so the session can still
-       *  be resumed in place — keep the `providerSessionOnly` remnant the paired `agentStatus:drop`
-       *  minted for exactly this case. A certified PTY exit passes nothing: there is no pane left to
-       *  resume into, and dropping it matches what `clearProviderPtyState` already does. */
+      /** The pane survives to resume into (a shell outlived the agent, or a pane restored after its
+       *  terminal died offline), so keep the `providerSessionOnly` remnant. */
       preserveResumeIdentity?: boolean
     }
   ): number {
-    // A certified PTY exit passes no resume identity; a surviving shell may opt into the remnant.
     let cleared = 0
     for (const paneKey of paneKeys) {
       const resolvedPaneKey = this.resolvePaneKeyAlias(paneKey)
+      if (options?.endedPresence) {
+        // Why both: cleanup below drops the alias, and a reader may still hold the original key.
+        const paneKeys = new Set([resolvedPaneKey, paneKey])
+        for (const [aliasKey, alias] of this.legacyPaneKeyAliases) {
+          if (alias.stablePaneKey === resolvedPaneKey) {
+            paneKeys.add(aliasKey)
+          }
+        }
+        const exit = { at: Date.now(), paneKeys }
+        for (const key of exit.paneKeys) {
+          this.agentExitedAtByPaneKey.set(key, exit)
+        }
+      }
       if (!this.hasLiveClaimsForPaneKey(resolvedPaneKey)) {
         continue
       }
@@ -191,8 +201,7 @@ export abstract class AgentHookServerCleanup extends AgentHookServerAuthorityFen
       (!parsed ||
         (parsed.kind === 'ssh'
           ? claim.connectionId === parsed.targetId
-          : // Why: WSL panes are local; their relay only stamps transport provenance.
-            claim.connectionId === null || isWslHookRelayConnectionId(claim.connectionId)))
+          : isLocalHookConnectionId(claim.connectionId)))
     // The startup snapshot may outlive its replaced map entry; revoke only the removed owner.
     for (const commitment of this.hydratedAuthorityCommitments) {
       if (ownedByRemoved(commitment)) {
@@ -283,6 +292,7 @@ export abstract class AgentHookServerCleanup extends AgentHookServerAuthorityFen
           this.state.claudeLeadStateByPaneKey.delete(paneKey)
           this.state.claudeRunningNonAgentTaskPaneKeys.delete(paneKey)
           this.state.claudeActiveSessionCronPaneKeys.delete(paneKey)
+          this.state.claudeLaunchedBackgroundTasksByPaneKey.delete(paneKey)
           this.state.claudeSessionOwnerByPaneKey.delete(paneKey)
         }
       }

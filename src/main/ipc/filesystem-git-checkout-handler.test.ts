@@ -5,7 +5,6 @@ import {
   store,
   REPO_PATH,
   WORKTREE_FEATURE_PATH,
-  getSshGitProviderMock,
   resetFilesystemIpcMocks
 } from './filesystem-test-harness'
 
@@ -16,10 +15,6 @@ const testStore: Store = store as never
 vi.mock('electron', async () => (await import('./filesystem-test-harness')).electronMock)
 vi.mock('fs/promises', async () => (await import('./filesystem-test-harness')).fsPromisesMock)
 vi.mock('../git/worktree', async () => (await import('./filesystem-test-harness')).gitWorktreeMock)
-vi.mock(
-  '../providers/ssh-git-dispatch',
-  async () => (await import('./filesystem-test-harness')).sshGitDispatchMock
-)
 vi.mock('../git/checkout', () => ({
   checkoutBranch: (...args: unknown[]) => checkoutBranchMock(...args)
 }))
@@ -37,13 +32,9 @@ describe('git:checkout IPC', () => {
     checkoutBranchMock.mockReset()
   })
 
-  it('checks out locally with interactive admission and through the SSH provider', async () => {
+  it('checks out locally with interactive admission', async () => {
     registerWorktreeRootsForRepo(testStore, 'repo-1', [REPO_PATH, WORKTREE_FEATURE_PATH])
     checkoutBranchMock.mockResolvedValue(undefined)
-    const sshProvider = {
-      checkoutBranch: vi.fn().mockResolvedValue(undefined)
-    }
-    getSshGitProviderMock.mockReturnValue(sshProvider)
 
     registerFilesystemGitCheckoutHandler(testStore)
 
@@ -51,17 +42,10 @@ describe('git:checkout IPC', () => {
       worktreePath: WORKTREE_FEATURE_PATH,
       branch: 'feat/x'
     })
-    await handlers.get('git:checkout')!(null, {
-      worktreePath: '/remote/repo',
-      branch: 'feat/y',
-      connectionId: 'ssh-1'
-    })
 
     expect(checkoutBranchMock).toHaveBeenCalledWith(WORKTREE_FEATURE_PATH, 'feat/x', {
       admissionTier: 'interactive'
     })
-    expect(getSshGitProviderMock).toHaveBeenCalledWith('ssh-1')
-    expect(sshProvider.checkoutBranch).toHaveBeenCalledWith('/remote/repo', 'feat/y')
   })
 
   it('propagates the git error verbatim instead of forcing', async () => {
@@ -81,9 +65,7 @@ describe('git:checkout IPC', () => {
     ).rejects.toBe(gitError)
   })
 
-  it('fails when the SSH connection has no git provider', async () => {
-    getSshGitProviderMock.mockReturnValue(undefined)
-
+  it('refuses ssh checkout as not served instead of running a local checkout', async () => {
     registerFilesystemGitCheckoutHandler(testStore)
 
     await expect(
@@ -92,7 +74,9 @@ describe('git:checkout IPC', () => {
         branch: 'x',
         connectionId: 'ssh-gone'
       })
-    ).rejects.toThrow('No git provider for connection "ssh-gone"')
+    ).rejects.toThrow(
+      'Remote connection dropped. Click Reconnect on the SSH target before retrying.'
+    )
     expect(checkoutBranchMock).not.toHaveBeenCalled()
   })
 

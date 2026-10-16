@@ -3,11 +3,13 @@ import { callAbortableRuntimeEnvironment } from '../../runtime/abortable-runtime
 import { toRuntimeWorktreeSelector } from '../../runtime/runtime-worktree-selector'
 import { translate } from '@/i18n/i18n'
 import { callRuntimeResult } from './web-runtime-calls'
+import { requireGitStageWorktreeScopeReceipt } from '../../../../shared/git-stage-worktree-scope'
 import { requireActiveEnvironment, updateEnvironmentFromResponse } from './web-runtime-session'
 import {
   resolveRuntimeFilePath,
   resolveRuntimeWorktreeByPath
 } from './web-runtime-worktree-catalog'
+import { createGitLogApi } from './web-git-log-api'
 
 export const webGitStatusAbortControllers = new Map<string, AbortController>()
 
@@ -41,6 +43,7 @@ export async function callAbortableRuntimeStatus<TResult>(
 
 export function createGitApi(): NonNullable<Partial<PreloadApi>['git']> {
   return {
+    ...createGitLogApi(),
     status: async ({
       worktreePath,
       includeIgnored,
@@ -87,13 +90,6 @@ export function createGitApi(): NonNullable<Partial<PreloadApi>['git']> {
     // Why: the "add huge folder to .gitignore" flow is desktop-only; the web runtime makes no offer, so return no candidates.
     findHugeFoldersToIgnore: async () => [],
     appendGitignore: async () => false,
-    history: async ({ worktreePath, connectionId: _connectionId, ...options }) => {
-      const worktree = await resolveRuntimeWorktreeByPath(worktreePath)
-      return callRuntimeResult('git.history', {
-        worktree: toRuntimeWorktreeSelector(worktree.id),
-        ...options
-      })
-    },
     conflictOperation: async ({ worktreePath }) => {
       const worktree = await resolveRuntimeWorktreeByPath(worktreePath)
       return callRuntimeResult('git.conflictOperation', {
@@ -110,13 +106,6 @@ export function createGitApi(): NonNullable<Partial<PreloadApi>['git']> {
       const worktree = await resolveRuntimeWorktreeByPath(worktreePath)
       await callRuntimeResult('git.abortRebase', {
         worktree: toRuntimeWorktreeSelector(worktree.id)
-      })
-    },
-    checkout: async ({ worktreePath, branch }) => {
-      const worktree = await resolveRuntimeWorktreeByPath(worktreePath)
-      await callRuntimeResult('git.checkout', {
-        worktree: toRuntimeWorktreeSelector(worktree.id),
-        branch
       })
     },
     diff: async ({ worktreePath, filePath, staged, compareAgainstHead }) => {
@@ -247,8 +236,19 @@ export function createGitApi(): NonNullable<Partial<PreloadApi>['git']> {
     }),
     cancelGeneratePullRequestFields: () => Promise.resolve(),
     stage: async ({ worktreePath, filePath }) => mutateGitPath('git.stage', worktreePath, filePath),
-    bulkStage: async ({ worktreePath, filePaths }) =>
-      mutateGitPaths('git.bulkStage', worktreePath, filePaths),
+    bulkStage: async ({ worktreePath, filePaths, scope }) => {
+      if (!scope) {
+        return mutateGitPaths('git.bulkStage', worktreePath, filePaths)
+      }
+      const worktree = await resolveRuntimeWorktreeByPath(worktreePath)
+      // Why no paths: an older host strips `scope` and stages `filePaths`, so an empty list makes that a no-op.
+      const reply = await callRuntimeResult<unknown>('git.bulkStage', {
+        worktree: toRuntimeWorktreeSelector(worktree.id),
+        filePaths: [],
+        scope
+      })
+      requireGitStageWorktreeScopeReceipt(reply, scope)
+    },
     unstage: async ({ worktreePath, filePath }) =>
       mutateGitPath('git.unstage', worktreePath, filePath),
     bulkUnstage: async ({ worktreePath, filePaths }) =>

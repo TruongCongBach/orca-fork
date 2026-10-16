@@ -11,6 +11,7 @@ import {
   recordPaneIsOwnedByPreservedPane,
   stablePaneHasLivePty
 } from './sleeping-agent-pane-ownership'
+import { isPaneSpawnDeferred } from './pane-spawn-deferral-registry'
 import {
   launchSleepingAgentSession,
   type ResumeSleepingAgentSessionsOptions
@@ -18,6 +19,7 @@ import {
 import { isStructuredAgentSyntheticSleepingRecord } from './structured-agent-synthetic-sleeping-record'
 import {
   findUnhydratedHostMirrorForPane,
+  isHostMirroredSleepingRecord,
   type UnhydratedHostMirror
 } from './host-mirrored-pane-liveness'
 import { parkUntilHostMirrorHandleLands } from './host-mirror-handle-gap-wait'
@@ -259,6 +261,11 @@ export function resumeSleepingAgentSessionsForWorktree(
     if (options?.skipClaimKeys?.has(claimKey)) {
       continue
     }
+    // Why: a pane whose restore its host deferred resumes this record itself when opened; its own
+    // queued startup matches the record, which must not read as a duplicate to clear.
+    if (isPaneSpawnDeferred(record.paneKey)) {
+      continue
+    }
     if (isInvalidWorktreeActivationRecord(record)) {
       state.clearSleepingAgentSession(record.paneKey)
       continue
@@ -310,6 +317,10 @@ export function resumeSleepingAgentSessionsForWorktree(
       continue
     }
     if (isPaneOwned) {
+      continue
+    }
+    // Mirrored rows cannot authorize a writer: closes, re-keys and pending handles look alike here.
+    if (isHostMirroredSleepingRecord(record)) {
       continue
     }
     if (launchSleepingAgentSession(record, options)) {

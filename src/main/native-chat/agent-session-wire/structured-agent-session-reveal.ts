@@ -13,7 +13,6 @@
 import type { AgentSessionWireRefusal } from '../../../shared/agent-session-wire'
 import { agentSessionRefusalError } from '../../../shared/agent-session-wire-refusals'
 import { journalOpenRefusal } from '../agent-session-journal/journal-open-failure'
-import { adapterSupportsRecord } from './structured-agent-session-provider-support'
 import { StructuredAgentSessionReadableRestorer } from './structured-agent-session-readable-restorer'
 import { StructuredAgentSessionRestartRestoreGate } from './structured-agent-session-restart-restore-gate'
 import {
@@ -27,18 +26,13 @@ import type {
 
 /** Throws its refusal as the code itself. */
 export async function revealStructuredAgentSession(
-  deps: Pick<StructuredAgentSessionHostDeps, 'store' | 'adapter'>,
+  deps: { store: Pick<StructuredAgentSessionHostDeps['store'], 'getRecord'> },
   sessionId: string,
   openConversation: (sessionId: string) => Promise<unknown>
 ): Promise<StructuredAgentSessionReveal> {
   const record = deps.store.getRecord(sessionId)
   if (!record) {
     throw agentSessionRefusalError('agent_session_identity_required', { reason: 'recordMissing' })
-  }
-  if (!adapterSupportsRecord(deps.adapter, record)) {
-    throw agentSessionRefusalError('structured_agent_session_unsupported', {
-      reason: 'hostUnsupported'
-    })
   }
   // Lease state is not consulted on purpose: this neither claims the lease nor spawns a child, so a
   // contested or reconciling chat still reveals and the send that follows adjudicates it. Refusing
@@ -64,21 +58,23 @@ export function createStructuredAgentSessionHostRestore(
   deps: StructuredAgentSessionHostDeps,
   wiring: Omit<
     ConstructorParameters<typeof StructuredAgentSessionReadableRestorer>[0],
-    'openDeps' | 'supportsRecord' | 'reconcile' | 'resolveRecovery'
+    'openDeps' | 'reconcileAll' | 'reconcile' | 'resolveRecovery'
   > & {
     reconcileLeases: (sessionId: string) => Promise<AgentSessionWireRefusal | null>
+    reconcileRestartLeases: () => Promise<AgentSessionWireRefusal | null>
     resolveRecovery: (sessionId: string) => Promise<unknown>
   }
 ): {
   reconcileRestartLeases: () => Promise<void>
   restoreReadableSessions: (sessionIds?: readonly string[]) => Promise<void>
 } {
-  const { reconcileLeases, resolveRecovery, ...rest } = wiring
+  const { reconcileLeases, reconcileRestartLeases, resolveRecovery, ...rest } = wiring
   const failures = reportEachFailureOnce(deps.logger)
   const reconcile = createReaderReconcile(reconcileLeases, failures)
+  const reconcileStartup = createReaderReconcile(reconcileRestartLeases, failures)
   const restorer = new StructuredAgentSessionReadableRestorer({
     openDeps: deps,
-    supportsRecord: (record) => adapterSupportsRecord(deps.adapter, record),
+    reconcileAll: reconcileStartup,
     reconcile,
     // The next attach or send resolves recovery again, strictly, before it acts.
     resolveRecovery: (sessionId) =>
@@ -94,7 +90,7 @@ export function createStructuredAgentSessionHostRestore(
   const gate = new StructuredAgentSessionRestartRestoreGate()
   return {
     reconcileRestartLeases: async () => {
-      await reconcile('startup')
+      await reconcileStartup()
     },
     restoreReadableSessions: (sessionIds) => gate.run(() => restorer.restore(sessionIds))
   }

@@ -1,7 +1,8 @@
 import { ipcMain } from 'electron'
 import type { Store } from '../../persistence'
 import { checkoutBranch } from '../../git/checkout'
-import { getSshGitProvider } from '../../providers/ssh-git-dispatch'
+import { requireReachableGitRoute } from '../../providers/execution-host-provider-dispatch'
+import { getConnectionExecutionHostId } from '../../../shared/execution-host'
 import { resolveRegisteredWorktreePath } from '../registered-worktree-roots-cache'
 import { getLocalGitOptionsForRegisteredWorktree } from '../local-worktree-runtime-options'
 
@@ -13,13 +14,7 @@ export function registerFilesystemGitCheckoutHandler(store: Store): void {
       _event,
       args: { worktreePath: string; branch: string; connectionId?: string }
     ): Promise<void> => {
-      if (args.connectionId) {
-        const provider = getSshGitProvider(args.connectionId)
-        if (!provider) {
-          throw new Error(`No git provider for connection "${args.connectionId}"`)
-        }
-        return provider.checkoutBranch(args.worktreePath, args.branch)
-      }
+      requireReachableGitRoute(getConnectionExecutionHostId(args.connectionId))
       const worktreePath = await resolveRegisteredWorktreePath(args.worktreePath, store)
       const gitOptions = getLocalGitOptionsForRegisteredWorktree(
         store,
